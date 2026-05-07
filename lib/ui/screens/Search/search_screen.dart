@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import 'components/search_item.dart';
 import '/ui/screens/Settings/settings_screen_controller.dart';
+import '/ui/widgets/snackbar.dart';
 import '../../widgets/modified_text_field.dart';
 import '/ui/navigator.dart';
 import 'search_screen_controller.dart';
