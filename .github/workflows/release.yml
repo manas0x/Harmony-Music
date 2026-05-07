@@ -36,8 +36,7 @@ jobs:
 
       - name: Rename APKs
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          VERSION=${TAG#v}
+          VERSION=${GITHUB_REF#refs/tags/v}
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/harmonymusic-${VERSION}.apk
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/harmonymusic-${VERSION}-arm64-v8a-release.apk
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/harmonymusic-${VERSION}-armeabi-v7a-release.apk
@@ -124,7 +123,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
-    name: Build Windows ZIP
+    name: Build Windows exe Installer
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -136,6 +135,9 @@ jobs:
           channel: 'stable'
           flutter-version: '3.24.2'
 
+      - name: Install InnoSetup
+        run: choco install innosetup -y
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -145,15 +147,18 @@ jobs:
       - name: Build Windows
         run: flutter build windows --release
 
-      - name: Zip Windows build
+      - name: Build exe installer with InnoSetup
         run: |
           $version = "${{ github.ref_name }}".TrimStart('v')
-          Compress-Archive -Path build\windows\x64\runner\release\* -DestinationPath "harmonymusic-${version}-windows.zip"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "windows\packaging\exe\inno_setup.iss"
+          $exeFile = Get-ChildItem -Path "windows\packaging\exe" -Filter "harmonymusic-*.exe" | Select-Object -First 1
+          Rename-Item $exeFile.FullName "harmonymusic-${version}.exe"
+          Move-Item "windows\packaging\exe\harmonymusic-${version}.exe" "."
 
-      - name: Upload Windows ZIP to Release
+      - name: Upload exe to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: harmonymusic-*-windows.zip
+          files: harmonymusic-*.exe
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
