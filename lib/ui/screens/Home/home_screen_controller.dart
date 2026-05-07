@@ -151,12 +151,22 @@ class HomeScreenController extends GetxController {
       }
 
       if (quickPicks.value.songList.isEmpty) {
+        // Try to find "Quick picks" by exact title
         final index = homeContentListMap
             .indexWhere((element) => element['title'] == "Quick picks");
         if (index != -1) {
           final con = homeContentListMap.removeAt(index);
           quickPicks.value = QuickPicks(List<MediaItem>.from(con["contents"]),
               title: "Quick picks");
+        } else if (homeContentListMap.isNotEmpty &&
+            homeContentListMap[0]["contents"] != null &&
+            homeContentListMap[0]["contents"].isNotEmpty &&
+            homeContentListMap[0]["contents"][0].runtimeType == MediaItem) {
+          // Fallback: use the first section that contains songs (MediaItems)
+          final con = homeContentListMap.removeAt(0);
+          quickPicks.value = QuickPicks(
+              List<MediaItem>.from(con["contents"]),
+              title: con["title"] ?? "Discover");
         }
       }
 
