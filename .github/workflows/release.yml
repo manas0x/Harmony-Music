@@ -124,7 +124,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
-    name: Build Windows exe
+    name: Build Windows ZIP
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -136,32 +136,24 @@ jobs:
           channel: 'stable'
           flutter-version: '3.24.2'
 
-      - name: Install InnoSetup
-        run: choco install innosetup -y
-
       - name: Install dependencies
         run: flutter pub get
 
       - name: Update lang data
         run: dart localization/generator.dart
 
-      - name: Activate flutter_distributor
-        run: dart pub global activate flutter_distributor
+      - name: Build Windows
+        run: flutter build windows --release
 
-      - name: Build Windows exe
-        run: flutter_distributor package --platform windows --targets exe
-
-      - name: Rename exe
+      - name: Zip Windows build
         run: |
-          $tag = "${{ github.ref_name }}"
-          $version = $tag.TrimStart('v')
-          $exe = Get-ChildItem -Path dist -Filter "*.exe" -Recurse | Select-Object -First 1
-          Copy-Item $exe.FullName "harmonymusic${version}.exe"
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          Compress-Archive -Path build\windows\x64\runner\release\* -DestinationPath "harmonymusic-${version}-windows.zip"
 
-      - name: Upload Windows exe to Release
+      - name: Upload Windows ZIP to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: harmonymusic*.exe
+          files: harmonymusic-*-windows.zip
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
