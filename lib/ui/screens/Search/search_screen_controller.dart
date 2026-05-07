@@ -24,13 +24,24 @@ class SearchScreenController extends GetxController with ProcessLink {
   }
 
   _init() async {
-    if(GetPlatform.isDesktop){
-      focusNode.addListener((){
+    if (GetPlatform.isDesktop) {
+      focusNode.addListener(() {
         isSearchBarInFocus.value = focusNode.hasFocus;
       });
     }
     queryBox = await Hive.openBox("searchQuery");
     historyQuerylist.value = queryBox.values.toList().reversed.toList();
+    _checkAndCleanCache();
+  }
+
+  Future<void> _checkAndCleanCache() async {
+    // Basic housekeeping: if history is too long, trim it
+    if (historyQuerylist.length > 20) {
+      while (historyQuerylist.length > 20) {
+        await queryBox.deleteAt(0);
+        historyQuerylist.removeLast();
+      }
+    }
   }
 
   Future<void> onChanged(String text) async {

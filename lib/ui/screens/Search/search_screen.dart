@@ -87,11 +87,27 @@ class SearchScreen extends StatelessWidget {
                           contentPadding: const EdgeInsets.only(left: 5),
                           focusColor: Colors.white,
                           hintText: "searchDes".tr,
-                          suffix: IconButton(
-                            onPressed: searchScreenController.reset,
-                            icon: const Icon(Icons.close),
-                            splashRadius: 16,
-                            iconSize: 19,
+                          suffix: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  // Voice search implementation placeholder
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      snackbar(context, "comingSoon".tr,
+                                          size: SanckBarSize.SMALL));
+                                },
+                                icon: const Icon(Icons.mic),
+                                splashRadius: 16,
+                                iconSize: 22,
+                              ),
+                              IconButton(
+                                onPressed: searchScreenController.reset,
+                                icon: const Icon(Icons.close),
+                                splashRadius: 16,
+                                iconSize: 19,
+                              ),
+                            ],
                           )),
                     ),
                     Expanded(

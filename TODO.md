@@ -35,4 +35,13 @@ Priority Work:
 * [done] Go to Album & View Artist Fix
 * [done] Empty Playlist representation
 * [done] Search header fix
+
+Future Roadmap (v2.5+):
+* [ ] Real-time Audio Visualizer in Player
+* [ ] Multi-Instance Piped support
+* [ ] Sleep Timer Fade-out effect
+* [ ] Voice Search full integration
+* [ ] External .lrc lyrics file support
+* [ ] Android Auto UI improvements
+
 * [done] Search artist list
