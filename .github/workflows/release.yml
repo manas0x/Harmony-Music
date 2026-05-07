@@ -5,9 +5,12 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
-  build-android-linux:
-    name: Build Android and Linux
+  build-android:
+    name: Build Android APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -22,13 +25,41 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          draft: true
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    name: Build Linux ZIP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.2'
+
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev libmpv-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev \
+            libmpv-dev libayatana-appindicator3-dev
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Build Linux
         run: flutter build linux --release
@@ -38,21 +69,16 @@ jobs:
           cd build/linux/x64/release/bundle
           zip -r ../../../../../HarmonyMusic-Linux.zip .
 
-      - name: Create Release and Upload Assets
+      - name: Upload Linux ZIP to Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            HarmonyMusic-Linux.zip
+          files: HarmonyMusic-Linux.zip
           draft: true
-          prerelease: false
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
-    name: Build Windows
+    name: Build Windows ZIP
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -74,9 +100,8 @@ jobs:
         run: |
           compress-archive -Path build\windows\x64\runner\release\* -DestinationPath HarmonyMusic-Windows.zip
 
-      - name: Upload Windows Asset to Release
+      - name: Upload Windows ZIP to Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: HarmonyMusic-Windows.zip
           draft: true
