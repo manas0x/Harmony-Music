@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'components/search_item.dart';
-import '/ui/screens/Settings/settings_screen_controller.dart';
-import '/ui/widgets/snackbar.dart';
-import '../../widgets/modified_text_field.dart';
-import '/ui/navigator.dart';
+import 'package:harmonymusic/ui/screens/Settings/settings_screen_controller.dart';
+import 'package:harmonymusic/ui/widgets/snackbar.dart';
+import 'package:harmonymusic/ui/player/player_controller.dart';
+import 'package:harmonymusic/ui/navigator.dart';
+import 'package:harmonymusic/ui/widgets/modified_text_field.dart';
 import 'search_screen_controller.dart';
 
 class SearchScreen extends StatelessWidget {
