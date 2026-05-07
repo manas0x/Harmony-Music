@@ -14,6 +14,7 @@ import '/ui/widgets/create_playlist_dialog.dart';
 import '../../navigator.dart';
 import '../../widgets/content_list_widget.dart';
 import '../../widgets/quickpickswidget.dart';
+import '../../widgets/recently_played_widget.dart';
 import '../../widgets/shimmer_widgets/home_shimmer.dart';
 import 'home_screen_controller.dart';
 import '../Settings/settings_screen.dart';
@@ -207,6 +208,7 @@ class Body extends StatelessWidget {
                                           homeScreenController.quickPicks.value,
                                       scrollController: scrollController);
                                 }),
+                                const RecentlyPlayedWidget(),
                                 ...getWidgetList(
                                     homeScreenController.middleContent,
                                     homeScreenController),
