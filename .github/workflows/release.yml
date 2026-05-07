@@ -25,34 +25,33 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK (Universal)
+      - name: Update lang data
+        run: dart localization/generator.dart
+
+      - name: Build Universal APK
         run: flutter build apk --release
 
-      - name: Build APK (arm64-v8a)
-        run: flutter build apk --release --target-platform android-arm64 --split-per-abi
-
-      - name: Build APK (armeabi-v7a)
-        run: flutter build apk --release --target-platform android-arm --split-per-abi
+      - name: Build Split APKs
+        run: flutter build apk --release --split-per-abi
 
       - name: Rename APKs
         run: |
           TAG=${GITHUB_REF#refs/tags/}
-          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/harmonymusic-${TAG}.apk
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/harmonymusic-${TAG}-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/harmonymusic-${TAG}-armeabi-v7a.apk
+          VERSION=${TAG#v}
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/harmonymusic-${VERSION}.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/harmonymusic-${VERSION}-arm64-v8a-release.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/harmonymusic-${VERSION}-armeabi-v7a-release.apk
 
       - name: Upload APKs to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            build/app/outputs/flutter-apk/harmonymusic-*.apk
+          files: build/app/outputs/flutter-apk/harmonymusic-*.apk
           draft: true
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-linux:
-    name: Build Linux ZIP
+    name: Build Linux Packages (deb, rpm, AppImage)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -69,30 +68,53 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev \
-            libmpv-dev libayatana-appindicator3-dev
+            libmpv-dev libayatana-appindicator3-dev \
+            rpm patchelf wget fuse
+
+      - name: Install AppImageTool
+        run: |
+          wget -O /usr/local/bin/appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x /usr/local/bin/appimagetool
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Linux
-        run: flutter build linux --release
+      - name: Update lang data
+        run: dart localization/generator.dart
 
-      - name: Zip Linux build
+      - name: Activate flutter_distributor
+        run: dart pub global activate flutter_distributor
+
+      - name: Build deb package
+        run: flutter_distributor package --platform linux --targets deb
+
+      - name: Build rpm package
+        run: flutter_distributor package --platform linux --targets rpm
+
+      - name: Build AppImage
+        run: flutter_distributor package --platform linux --targets appimage
+
+      - name: Rename Linux packages
         run: |
           TAG=${GITHUB_REF#refs/tags/}
-          cd build/linux/x64/release/bundle
-          zip -r ../../../../../harmonymusic-${TAG}-linux.zip .
+          VERSION=${TAG#v}
+          find dist -name "*.deb" -exec cp {} harmonymusic${VERSION}.deb \;
+          find dist -name "*.rpm" -exec cp {} harmonymusic${VERSION}.rpm \;
+          find dist -name "*.AppImage" -exec cp {} harmonymusic${VERSION}.AppImage \;
 
-      - name: Upload Linux to Release
+      - name: Upload Linux Packages to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: harmonymusic-*-linux.zip
+          files: |
+            harmonymusic*.deb
+            harmonymusic*.rpm
+            harmonymusic*.AppImage
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
-    name: Build Windows ZIP
+    name: Build Windows exe
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -104,21 +126,32 @@ jobs:
           channel: 'stable'
           flutter-version: '3.24.2'
 
+      - name: Install InnoSetup
+        run: choco install innosetup -y
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Windows
-        run: flutter build windows --release
+      - name: Update lang data
+        run: dart localization/generator.dart
 
-      - name: Zip Windows build
+      - name: Activate flutter_distributor
+        run: dart pub global activate flutter_distributor
+
+      - name: Build Windows exe
+        run: flutter_distributor package --platform windows --targets exe
+
+      - name: Rename exe
         run: |
           $tag = "${{ github.ref_name }}"
-          compress-archive -Path build\windows\x64\runner\release\* -DestinationPath "harmonymusic-$tag-windows.zip"
+          $version = $tag.TrimStart('v')
+          $exe = Get-ChildItem -Path dist -Filter "*.exe" -Recurse | Select-Object -First 1
+          Copy-Item $exe.FullName "harmonymusic${version}.exe"
 
-      - name: Upload Windows to Release
+      - name: Upload Windows exe to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: harmonymusic-*-windows.zip
+          files: harmonymusic*.exe
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
