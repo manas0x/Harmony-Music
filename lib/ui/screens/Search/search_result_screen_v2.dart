@@ -6,6 +6,7 @@ import 'package:harmonymusic/ui/widgets/search_related_widgets.dart';
 
 import '../../navigator.dart';
 import '../../widgets/separate_tab_item_widget.dart';
+import '../../widgets/shimmer_widgets/search_shimmer.dart';
 import 'search_result_screen_controller.dart';
 
 class SearchResultScreenBN extends StatelessWidget {
@@ -165,9 +166,7 @@ class SearchResultScreenBN extends StatelessWidget {
                         ],
                       );
                     } else {
-                      return const Center(
-                        child: LoadingIndicator(),
-                      );
+                      return const SearchShimmer();
                     }
                   },
                 ),

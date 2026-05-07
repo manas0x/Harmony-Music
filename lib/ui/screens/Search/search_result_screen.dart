@@ -8,6 +8,7 @@ import '../../widgets/animated_screen_transition.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/search_related_widgets.dart';
 import '../../widgets/separate_tab_item_widget.dart';
+import '../../widgets/shimmer_widgets/search_shimmer.dart';
 import 'search_result_screen_controller.dart';
 
 class SearchResultScreen extends StatelessWidget {
@@ -136,9 +137,7 @@ class Body extends StatelessWidget {
         } else if (searchResScrController.isResultContentFetced.isTrue) {
           return const ResultWidget();
         } else {
-          return const Center(
-            child: LoadingIndicator(),
-          );
+          return const SearchShimmer();
         }
       });
     } else {

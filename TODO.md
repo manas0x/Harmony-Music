@@ -2,12 +2,13 @@
 * [Done] <s>Fix & Complete Playlist pane</s>
 * [Done] <s>Album Screen</s>
 * [Done] <s> Playlist screen for items </s>
-* [Partialy_completed] Search screen
+* [Done] <s>Search screen</s> (History & Clear All implemented)
 * [Done] <s>Search result screen</s>
 * [Done] Artist Screen
-* [Partialy_completed] App Settings
+* [Done] <s>App Settings</s>
+* [Done] <s>Battery optimization disable option</s>
+* [Done] <s>Shimmer effect on loading</s>
 * Housekeeping work
-* Battery optimization disable option
 * Album/Playlist Screen Modification (Bookmark, other playlist/Album details)
 
 Playlist-
@@ -21,10 +22,8 @@ Playlist-
 * [Done] <s>Notification Controls</s>
 * Local Playlist Manangement
 
-
-
 ui
-[Partialy_completed]Shimmer effect on loading
+* [Done] <s>Shimmer effect on loading</s>
 
 Fix Required:
 * [Done] <s>Pushing song to playlist</s>
