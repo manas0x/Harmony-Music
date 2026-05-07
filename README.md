@@ -2,6 +2,8 @@
   
 # 🚀 **This version of Harmony Music is actively maintained.**
   
+Originally created by [anandnet](https://github.com/anandnet).
+  
 </div>
 
 <img src="https://github.com/anandnet/Harmony-Music/blob/main/cover.png" width="1200" >
