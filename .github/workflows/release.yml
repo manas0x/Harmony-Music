@@ -1,4 +1,4 @@
-name: Build and Release
+name: Harmony Music CI/CD
 
 on:
   push:
