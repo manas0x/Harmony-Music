@@ -51,7 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-linux:
-    name: Build Linux Packages (deb, rpm, AppImage)
+    name: Build Linux Packages (deb + zip)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -68,13 +68,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev \
-            libmpv-dev libayatana-appindicator3-dev \
-            rpm patchelf wget fuse
-
-      - name: Install AppImageTool
-        run: |
-          wget -O /usr/local/bin/appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x /usr/local/bin/appimagetool
+            libmpv-dev libayatana-appindicator3-dev dpkg
 
       - name: Install dependencies
         run: flutter pub get
@@ -82,33 +76,49 @@ jobs:
       - name: Update lang data
         run: dart localization/generator.dart
 
-      - name: Activate flutter_distributor
-        run: dart pub global activate flutter_distributor
+      - name: Build Linux
+        run: flutter build linux --release
 
-      - name: Build deb package
-        run: flutter_distributor package --platform linux --targets deb
-
-      - name: Build rpm package
-        run: flutter_distributor package --platform linux --targets rpm
-
-      - name: Build AppImage
-        run: flutter_distributor package --platform linux --targets appimage
-
-      - name: Rename Linux packages
+      - name: Create deb package
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          VERSION=${TAG#v}
-          find dist -name "*.deb" -exec cp {} harmonymusic${VERSION}.deb \;
-          find dist -name "*.rpm" -exec cp {} harmonymusic${VERSION}.rpm \;
-          find dist -name "*.AppImage" -exec cp {} harmonymusic${VERSION}.AppImage \;
+          VERSION=${GITHUB_REF#refs/tags/v}
+          mkdir -p .debpkg/usr/lib/harmonymusic
+          mkdir -p .debpkg/usr/share/applications
+          mkdir -p .debpkg/DEBIAN
+          cp -r build/linux/x64/release/bundle/. .debpkg/usr/lib/harmonymusic/
+          chmod +x .debpkg/usr/lib/harmonymusic/harmonymusic
+          cat > .debpkg/usr/share/applications/harmonymusic.desktop << EOF
+          [Desktop Entry]
+          Name=Harmony Music
+          Exec=/usr/lib/harmonymusic/harmonymusic
+          Icon=/usr/lib/harmonymusic/data/flutter_assets/assets/icons/ic_launcher.png
+          Type=Application
+          Categories=Audio;Music;Player;
+          Comment=A cross-platform music streaming app
+          EOF
+          cat > .debpkg/DEBIAN/control << EOF
+          Package: harmonymusic
+          Version: ${VERSION}
+          Architecture: amd64
+          Maintainer: manas0x <https://github.com/manas0x>
+          Description: Harmony Music - A cross platform music streaming app
+           Stream music from YouTube Music with a beautiful Flutter UI.
+          Depends: mpv
+          EOF
+          dpkg-deb --build .debpkg harmonymusic-${VERSION}.deb
 
-      - name: Upload Linux Packages to Release
+      - name: Zip Linux bundle
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          cd build/linux/x64/release/bundle
+          zip -r ../../../../../harmonymusic-${VERSION}-linux.zip .
+
+      - name: Upload Linux packages to Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            harmonymusic*.deb
-            harmonymusic*.rpm
-            harmonymusic*.AppImage
+            harmonymusic-*.deb
+            harmonymusic-*-linux.zip
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
