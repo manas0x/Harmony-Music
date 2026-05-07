@@ -136,6 +136,9 @@ class LifecycleHandler extends WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      if (Get.isRegistered<SettingsScreenController>()) {
+        Get.find<SettingsScreenController>().refreshBatteryOptimizationStatus();
+      }
     } else if (state == AppLifecycleState.detached) {
       await Get.find<AudioHandler>().customAction("saveSession");
     }

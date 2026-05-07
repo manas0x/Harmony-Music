@@ -322,6 +322,13 @@ class SettingsScreenController extends GetxController {
         await Permission.ignoreBatteryOptimizations.isGranted;
   }
 
+  Future<void> refreshBatteryOptimizationStatus() async {
+    if (GetPlatform.isAndroid) {
+      isIgnoringBatteryOptimizations.value =
+          await Permission.ignoreBatteryOptimizations.isGranted;
+    }
+  }
+
   void toggleAutoOpenPlayer(bool val) {
     setBox.put('autoOpenPlayer', val);
     autoOpenPlayer.value = val;

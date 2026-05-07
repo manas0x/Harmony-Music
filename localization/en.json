@@ -19,6 +19,8 @@
     "retry": "Retry!",
     "noOfflineSong": "No offline songs!",
     "recentlyPlayed": "Recently Played",
+    "recent": "Recent",
+    "clearAll": "Clear all",
     "favorites": "Favorites",
     "cachedOrOffline": "Cached/Offline",
     "downloads": "Downloads",

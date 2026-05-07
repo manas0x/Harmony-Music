@@ -478,28 +478,43 @@ class SettingsScreen extends StatelessWidget {
                             contentPadding:
                                 const EdgeInsets.only(left: 5, right: 10),
                             title: Text("ignoreBatOpt".tr),
+                            subtitle: Text("ignoreBatOptDes".tr,
+                                style: Theme.of(context).textTheme.bodyMedium),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  settingsController
+                                          .isIgnoringBatteryOptimizations.isTrue
+                                      ? "enabled".tr
+                                      : "disabled".tr,
+                                  style: TextStyle(
+                                    color: settingsController
+                                            .isIgnoringBatteryOptimizations
+                                            .isTrue
+                                        ? Colors.green
+                                        : Colors.redAccent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Icon(
+                                  settingsController
+                                          .isIgnoringBatteryOptimizations.isTrue
+                                      ? Icons.check_circle
+                                      : Icons.error_outline,
+                                  color: settingsController
+                                          .isIgnoringBatteryOptimizations.isTrue
+                                      ? Colors.green
+                                      : Colors.redAccent,
+                                ),
+                              ],
+                            ),
                             onTap: settingsController
                                     .isIgnoringBatteryOptimizations.isFalse
                                 ? settingsController
                                     .enableIgnoringBatteryOptimizations
                                 : null,
-                            subtitle: Obx(() => RichText(
-                                  text: TextSpan(
-                                    text:
-                                        "${"status".tr}: ${settingsController.isIgnoringBatteryOptimizations.isTrue ? "enabled".tr : "disabled".tr}\n",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .copyWith(fontWeight: FontWeight.bold),
-                                    children: <TextSpan>[
-                                      TextSpan(
-                                          text: "ignoreBatOptDes".tr,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium),
-                                    ],
-                                  ),
-                                )),
                           ),
                         )
                       : const SizedBox.shrink(),

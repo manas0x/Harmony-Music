@@ -1,7 +1,7 @@
 <div align="center">
-
-# ❗**This repository is no longer maintained.**
-
+  
+# 🚀 **This version of Harmony Music is actively maintained.**
+  
 </div>
 
 <img src="https://github.com/anandnet/Harmony-Music/blob/main/cover.png" width="1200" >

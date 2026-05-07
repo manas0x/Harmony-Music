@@ -133,11 +133,53 @@ class SearchScreen extends StatelessWidget {
                                       ),
                                     )
                                   ]
-                                : list
-                                    .map((item) => SearchItem(
+                                : [
+                                    if (isEmpty &&
+                                        searchScreenController
+                                            .historyQuerylist.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0, vertical: 5),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "recent".tr,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium,
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                Get.defaultDialog(
+                                                  title: "clearAll".tr,
+                                                  middleText:
+                                                      "Are you sure you want to clear all search history?",
+                                                  textConfirm: "clearAll".tr,
+                                                  textCancel: "cancel".tr,
+                                                  confirmTextColor:
+                                                      Colors.white,
+                                                  onConfirm: () {
+                                                    searchScreenController
+                                                        .clearAllHistory();
+                                                    Get.back();
+                                                  },
+                                                );
+                                              },
+                                              child: Text(
+                                                "clearAll".tr,
+                                                style: const TextStyle(
+                                                    color: Colors.redAccent),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ...list.map((item) => SearchItem(
                                         queryString: item,
                                         isHistoryString: isEmpty))
-                                    .toList());
+                                  ]);
                       }),
                     )
                   ],
