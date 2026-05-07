@@ -22,6 +22,10 @@ class HomeScreenController extends GetxController {
   final quickPicks = QuickPicks([]).obs;
   final middleContent = [].obs;
   final fixedContent = [].obs;
+  final trendingSongs = <MediaItem>[].obs;
+  final popularArtistsContent = [].obs;
+  final popularAlbumsContent = [].obs;
+  final popularRadioContent = [].obs;
   final showVersionDialog = true.obs;
   //isHomeScreenOnTop var only useful if bottom nav enabled
   final isHomeSreenOnTop = true.obs;
@@ -171,6 +175,11 @@ class HomeScreenController extends GetxController {
       }
 
       middleContent.value = _setContentList(middleContentTemp);
+
+      // Parse named sections from the full home content list
+      final allSections = List.from(homeContentListMap);
+      _parseSections(allSections);
+
       fixedContent.value = _setContentList(homeContentListMap);
 
       isContentFetched.value = true;
@@ -213,6 +222,44 @@ class HomeScreenController extends GetxController {
       }
     }
     return contentTemp;
+  }
+
+  /// Parses sections from homeContentListMap into dedicated observables
+  void _parseSections(List<dynamic> sections) {
+    final List<MediaItem> trending = [];
+    final List albumsSections = [];
+    final List artistsSections = [];
+    final List radioSections = [];
+
+    for (final section in sections) {
+      if (section == null ||
+          section["contents"] == null ||
+          (section["contents"]).isEmpty) continue;
+
+      final String title = (section["title"] ?? "").toString().toLowerCase();
+      final firstItem = section["contents"][0];
+
+      if (firstItem.runtimeType == MediaItem) {
+        // Songs section → trending
+        trending.addAll(List<MediaItem>.from(section["contents"]));
+      } else if (firstItem.runtimeType == Album) {
+        albumsSections.add(section);
+      } else if (firstItem.runtimeType == Playlist) {
+        // Heuristically split radio vs artists by title keywords
+        if (title.contains("artist") || title.contains("similar")) {
+          artistsSections.add(section);
+        } else if (title.contains("radio") || title.contains("station") || title.contains("mix")) {
+          radioSections.add(section);
+        } else {
+          radioSections.add(section); // treat remaining playlists as radio/mixes
+        }
+      }
+    }
+
+    if (trending.isNotEmpty) trendingSongs.value = trending.take(20).toList();
+    if (albumsSections.isNotEmpty) popularAlbumsContent.value = _setContentList(albumsSections);
+    if (artistsSections.isNotEmpty) popularArtistsContent.value = _setContentList(artistsSections);
+    if (radioSections.isNotEmpty) popularRadioContent.value = _setContentList(radioSections);
   }
 
   Future<void> changeDiscoverContent(dynamic val, {String? songId}) async {

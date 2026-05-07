@@ -199,22 +199,39 @@ class Body extends StatelessWidget {
                         final items = homeScreenController
                                 .isContentFetched.value
                             ? [
+                                // Trending Songs
                                 Obx(() {
+                                  if (homeScreenController
+                                      .trendingSongs.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
                                   final scrollController = ScrollController();
                                   homeScreenController.contentScrollControllers
                                       .add(scrollController);
                                   return QuickPicksWidget(
-                                      content:
-                                          homeScreenController.quickPicks.value,
-                                      scrollController: scrollController);
+                                    content: QuickPicks(
+                                      homeScreenController.trendingSongs,
+                                      title: "trendingSongs",
+                                    ),
+                                    scrollController: scrollController,
+                                  );
                                 }),
+                                // Recently Played
                                 const RecentlyPlayedWidget(),
+                                // Popular Albums & Singles
+                                Obx(() {
+                                  if (homeScreenController.popularAlbumsContent.isEmpty) return const SizedBox.shrink();
+                                  return Column(children: getWidgetList(homeScreenController.popularAlbumsContent, homeScreenController));
+                                }),
+                                // Popular Radio / Mixes
+                                Obx(() {
+                                  if (homeScreenController.popularRadioContent.isEmpty) return const SizedBox.shrink();
+                                  return Column(children: getWidgetList(homeScreenController.popularRadioContent, homeScreenController));
+                                }),
+                                // Rest of API content
                                 ...getWidgetList(
                                     homeScreenController.middleContent,
                                     homeScreenController),
-                                ...getWidgetList(
-                                    homeScreenController.fixedContent,
-                                    homeScreenController)
                               ]
                             : [const HomeShimmer()];
                         return ListView.builder(
