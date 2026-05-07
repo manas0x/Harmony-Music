@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-android:
-    name: Build Android APK
+    name: Build Android APKs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,16 +25,29 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
+      - name: Build APK (Universal)
         run: flutter build apk --release
 
-      - name: Upload APK to Release
+      - name: Build APK (arm64-v8a)
+        run: flutter build apk --release --target-platform android-arm64 --split-per-abi
+
+      - name: Build APK (armeabi-v7a)
+        run: flutter build apk --release --target-platform android-arm --split-per-abi
+
+      - name: Rename APKs
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/harmonymusic-${TAG}.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/harmonymusic-${TAG}-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/harmonymusic-${TAG}-armeabi-v7a.apk
+
+      - name: Upload APKs to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: |
+            build/app/outputs/flutter-apk/harmonymusic-*.apk
           draft: true
           prerelease: false
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -66,13 +79,14 @@ jobs:
 
       - name: Zip Linux build
         run: |
+          TAG=${GITHUB_REF#refs/tags/}
           cd build/linux/x64/release/bundle
-          zip -r ../../../../../HarmonyMusic-Linux.zip .
+          zip -r ../../../../../harmonymusic-${TAG}-linux.zip .
 
-      - name: Upload Linux ZIP to Release
+      - name: Upload Linux to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: HarmonyMusic-Linux.zip
+          files: harmonymusic-*-linux.zip
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -98,12 +112,13 @@ jobs:
 
       - name: Zip Windows build
         run: |
-          compress-archive -Path build\windows\x64\runner\release\* -DestinationPath HarmonyMusic-Windows.zip
+          $tag = "${{ github.ref_name }}"
+          compress-archive -Path build\windows\x64\runner\release\* -DestinationPath "harmonymusic-$tag-windows.zip"
 
-      - name: Upload Windows ZIP to Release
+      - name: Upload Windows to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: HarmonyMusic-Windows.zip
+          files: harmonymusic-*-windows.zip
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
