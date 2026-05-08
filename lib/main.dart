@@ -1,16 +1,13 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:terminate_restart/terminate_restart.dart';
 
 import '/ui/screens/Search/search_screen_controller.dart';
 import '/utils/get_localization.dart';
-import '/services/downloader.dart';
 import '/services/piped_service.dart';
-import 'utils/app_link_controller.dart';
 import '/services/audio_handler.dart';
 import '/services/music_service.dart';
 import '/ui/home.dart';
@@ -19,8 +16,17 @@ import 'ui/screens/Settings/settings_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
 import 'ui/screens/Home/home_screen_controller.dart';
 import 'ui/screens/Library/library_controller.dart';
-import 'utils/system_tray.dart';
 import 'utils/update_check_flag_file.dart';
+
+// Platform-conditional imports — dart.library.html is only available on web
+import 'utils/app_link_controller.dart'
+    if (dart.library.html) 'utils/stub/app_link_controller_stub.dart';
+import 'utils/system_tray.dart'
+    if (dart.library.html) 'utils/stub/system_tray_stub.dart';
+
+// Native-only imports
+import 'utils/stub/native_only.dart'
+    if (dart.library.io) 'utils/native_init.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,19 +35,22 @@ Future<void> main() async {
   startApplicationServices();
   Get.put<AudioHandler>(await initAudioService(), permanent: true);
   WidgetsBinding.instance.addObserver(LifecycleHandler());
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  TerminateRestart.instance.initialize();
+  if (!kIsWeb) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    nativeInit(); // terminate_restart and other native inits
+  }
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    if (!GetPlatform.isDesktop) Get.put(AppLinksController());
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    if (!kIsWeb && !GetPlatform.isDesktop) Get.put(AppLinksController());
+    if (!kIsWeb) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
     return GetMaterialApp(
         title: 'Harmony Music',
         home: const Home(),
@@ -92,23 +101,22 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibraryAlbumsController(), fenix: true);
   Get.lazyPut(() => LibraryArtistsController(), fenix: true);
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
-  Get.lazyPut(() => Downloader(), fenix: true);
-  if (GetPlatform.isDesktop) {
+  if (!kIsWeb) {
+    Get.lazyPut(() => nativeDownloader(), fenix: true);
+  }
+  if (!kIsWeb && GetPlatform.isDesktop) {
     Get.lazyPut(() => SearchScreenController(), fenix: true);
     Get.put(DesktopSystemTray());
   }
 }
 
-initHive() async {
-  String applicationDataDirectoryPath;
-  if (GetPlatform.isDesktop) {
-    applicationDataDirectoryPath =
-        "${(await getApplicationSupportDirectory()).path}/db";
+Future<void> initHive() async {
+  if (kIsWeb) {
+    // Web uses IndexedDB via hive_flutter — no path needed
+    await Hive.initFlutter();
   } else {
-    applicationDataDirectoryPath =
-        (await getApplicationDocumentsDirectory()).path;
+    await initHiveNative();
   }
-  await Hive.initFlutter(applicationDataDirectoryPath);
   await Hive.openBox("SongsCache");
   await Hive.openBox("SongDownloads");
   await Hive.openBox('SongsUrlCache');
@@ -135,7 +143,9 @@ class LifecycleHandler extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      if (!kIsWeb) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      }
       if (Get.isRegistered<SettingsScreenController>()) {
         Get.find<SettingsScreenController>().refreshBatteryOptimizationStatus();
       }

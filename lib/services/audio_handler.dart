@@ -1,6 +1,7 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:isolate';
 import 'dart:math';
+import 'audio_handler_helper.dart';
 
 import 'package:flutter/services.dart';
 
@@ -8,8 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_media_kit/just_audio_media_kit.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:hive/hive.dart';
+import 'package:get/get.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 // ignore: depend_on_referenced_packages
 import 'package:rxdart/rxdart.dart';
@@ -68,10 +70,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       ConcatenatingAudioSource(children: [], useLazyPreparation: false);
 
   MyAudioHandler() {
-    if (GetPlatform.isWindows || GetPlatform.isLinux) {
-      JustAudioMediaKit.title = 'Harmony music';
-      JustAudioMediaKit.protocolWhitelist = const ['http', 'https', 'file'];
-    }
+    initNativeAudioConfig(_player);
     _mediaLibrary = MediaLibrary();
     _player = AudioPlayer(
         audioLoadConfiguration: const AudioLoadConfiguration(
@@ -102,9 +101,12 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   }
 
   Future<void> _createCacheDir() async {
-    _cacheDir = (await getTemporaryDirectory()).path;
-    if (!Directory("$_cacheDir/cachedSongs/").existsSync()) {
-      Directory("$_cacheDir/cachedSongs/").createSync(recursive: true);
+    final path = await getCacheDirPath();
+    if (path != null) {
+      _cacheDir = path;
+      if (!dirExists("$_cacheDir/cachedSongs/")) {
+        createDir("$_cacheDir/cachedSongs/");
+      }
     }
   }
 
@@ -278,14 +280,17 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   AudioSource _createAudioSource(MediaItem mediaItem) {
     final url = mediaItem.extras!['url'] as String;
-    if (url.contains('/cache') ||
-        (Get.find<SettingsScreenController>().cacheSongs.isTrue &&
-            url.contains("http"))) {
+    if (!kIsWeb &&
+        (url.contains('/cache') ||
+            (Get.find<SettingsScreenController>().cacheSongs.isTrue &&
+                url.contains("http")))) {
       printINFO("Playing Using LockCaching");
       isPlayingUsingLockCachingSource = true;
+      // Note: LockCachingAudioSource with File is native-only
       return LockCachingAudioSource(
         Uri.parse(url),
-        cacheFile: File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
+        // ignore: undefined_identifier
+        cacheFile: dynamicNativeFile("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
         tag: mediaItem,
       );
     }
