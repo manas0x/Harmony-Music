@@ -10,6 +10,7 @@ import '../../../utils/helper.dart';
 import '/models/album.dart';
 import '/models/playlist.dart';
 import '/models/quick_picks.dart';
+import '/models/artist.dart';
 import '/services/music_service.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/widgets/new_version_dialog.dart';
@@ -69,9 +70,7 @@ class HomeScreenController extends GetxController {
   Future<void> loadContentFromNetwork({bool silent = false}) async {
     networkError.value = false;
     try {
-      final homeContentListMap = await _musicServices.getHome(
-          limit:
-              Get.find<SettingsScreenController>().noOfHomeScreenContent.value);
+      final homeContentListMap = await _musicServices.getHome(limit: 10);
 
       // Parse ALL sections from the API response into dedicated observables
       _parseSections(List.from(homeContentListMap));
@@ -140,6 +139,8 @@ class HomeScreenController extends GetxController {
         trending.addAll(List<MediaItem>.from(section["contents"]));
       } else if (firstItem.runtimeType == Album) {
         albumsSections.add(section);
+      } else if (firstItem.runtimeType == Artist) {
+        artistsSections.add(section);
       } else if (firstItem.runtimeType == Playlist) {
         // Heuristically split radio vs artists by title keywords
         if (title.contains("artist") || title.contains("similar")) {

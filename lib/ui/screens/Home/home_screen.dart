@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '/models/quick_picks.dart';
 import '../Search/components/desktop_search_bar.dart';
 import '/ui/screens/Search/search_screen_controller.dart';
 import '/ui/widgets/animated_screen_transition.dart';
@@ -215,6 +216,11 @@ class Body extends StatelessWidget {
                                     ),
                                     scrollController: scrollController,
                                   );
+                                }),
+                                // Popular Artists
+                                Obx(() {
+                                  if (homeScreenController.popularArtistsContent.isEmpty) return const SizedBox.shrink();
+                                  return Column(children: getWidgetList(homeScreenController.popularArtistsContent, homeScreenController));
                                 }),
                                 // Recently Played
                                 const RecentlyPlayedWidget(),

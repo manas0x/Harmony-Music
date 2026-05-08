@@ -19,4 +19,6 @@ Future<void> initHiveNative() async {
   await Hive.initFlutter(path);
 }
 
-GetxController nativeDownloader() => Downloader();
+void registerNativeServices() {
+  Get.lazyPut(() => Downloader(), fenix: true);
+}

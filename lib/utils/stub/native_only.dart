@@ -5,6 +5,8 @@ void nativeInit() {}
 
 Future<void> initHiveNative() async {}
 
-GetxController nativeDownloader() => _NoOpDownloader();
+void registerNativeServices() {
+  // No-op on web
+}
 
 class _NoOpDownloader extends GetxController {}

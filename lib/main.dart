@@ -102,7 +102,7 @@ Future<void> startApplicationServices() async {
   Get.lazyPut(() => LibraryArtistsController(), fenix: true);
   Get.lazyPut(() => SettingsScreenController(), fenix: true);
   if (!kIsWeb) {
-    Get.lazyPut(() => nativeDownloader(), fenix: true);
+    registerNativeServices();
   }
   if (!kIsWeb && GetPlatform.isDesktop) {
     Get.lazyPut(() => SearchScreenController(), fenix: true);

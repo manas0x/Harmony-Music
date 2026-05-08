@@ -68,6 +68,13 @@ static void my_application_activate(GApplication* application) {
   }
 
   gtk_window_set_default_size(window, 1280, 720);
+  
+  // Set window icon
+  g_autoptr(GdkPixbuf) icon = gdk_pixbuf_new_from_file("data/flutter_assets/assets/icons/icon.png", nullptr);
+  if (icon != nullptr) {
+    gtk_window_set_icon(window, icon);
+  }
+
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();

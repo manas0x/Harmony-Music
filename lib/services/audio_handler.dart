@@ -70,8 +70,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       ConcatenatingAudioSource(children: [], useLazyPreparation: false);
 
   MyAudioHandler() {
-    initNativeAudioConfig(_player);
-    _mediaLibrary = MediaLibrary();
     _player = AudioPlayer(
         audioLoadConfiguration: const AudioLoadConfiguration(
             androidLoadControl: AndroidLoadControl(
@@ -80,6 +78,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       bufferForPlaybackDuration: Duration(milliseconds: 50),
       bufferForPlaybackAfterRebufferDuration: Duration(seconds: 2),
     )));
+    initNativeAudioConfig(_player);
+    _mediaLibrary = MediaLibrary();
     _createCacheDir();
     _addEmptyList();
     _notifyAudioHandlerAboutPlaybackEvents();
@@ -519,7 +519,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           final song = extras!['mediaItem'] as MediaItem;
           final songsCacheBox = Hive.box("SongsCache");
           if (!songsCacheBox.containsKey(song.id) &&
-              await File("$_cacheDir/cachedSongs/${song.id}.mp3").exists()) {
+              await fileExists("$_cacheDir/cachedSongs/${song.id}.mp3")) {
             song.extras!['url'] = currentSongUrl;
             song.extras!['date'] = DateTime.now().millisecondsSinceEpoch;
             final dbStreamData = Hive.box("SongsUrlCache").get(song.id);
@@ -837,7 +837,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       }
       //check file access and if file exist in storage
       final status = await PermissionService.getExtStoragePermission();
-      if (status && await File(path).exists()) {
+      if (status && await fileExists(path)) {
         return streamInfo;
       }
       //in case file doesnot found in storage, song will be played online
