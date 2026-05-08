@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Harmony Music
+GenericName=Music Player
+Comment=A cross platform app for music streaming.
+Exec=harmonymusic
+Icon=harmonymusic
+Terminal=false
+Type=Application
+Categories=Audio;Music;Player;AudioVideo;
+Keywords=Music;Streaming;Player;
+StartupWMClass=harmonymusic

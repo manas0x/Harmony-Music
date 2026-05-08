@@ -20,6 +20,9 @@ G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
+  g_set_prgname(APPLICATION_ID);
+  g_set_application_name("Harmony Music");
+
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
@@ -70,7 +73,12 @@ static void my_application_activate(GApplication* application) {
   gtk_window_set_default_size(window, 1280, 720);
   
   // Set window icon
-  g_autoptr(GdkPixbuf) icon = gdk_pixbuf_new_from_file("data/flutter_assets/assets/icons/icon.png", nullptr);
+  const char* icon_path = "assets/icons/icon.png";
+  if (!g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+    icon_path = "data/flutter_assets/assets/icons/icon.png";
+  }
+
+  g_autoptr(GdkPixbuf) icon = gdk_pixbuf_new_from_file(icon_path, nullptr);
   if (icon != nullptr) {
     gtk_window_set_icon(window, icon);
   }
